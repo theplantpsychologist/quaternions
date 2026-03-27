@@ -1,0 +1,257 @@
+\documentclass[11pt]{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{caption}
+% ---------- Title ----------
+\title{3d Kawasaki's theorem with quaternions}
+\author{Brandon Wong}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+    Quaternion side quest: show that for degree 4 vertices that satisfy the 2D Kawasaki's theorem, the fold angles are coupled into a pair of equal angles and a pair of opposite angles.
+
+\end{abstract}
+
+\section{Quaternions crash course}
+
+Quaternions are very convenient for representing rotations in 3D space. A quaternion is like a complex number $a+b i$, but instead of one imaginary unit $i$, we have three imaginary units $i, j, k$ that satisfy the following properties:
+\begin{align*}
+    i^2 = j^2 = k^2 = -1 \\
+    ij = k, jk = i, ki = j \\
+    ji = -k, kj = -i, ik = -j
+\end{align*}
+A quaternion can be expressed as $q = s + x i + y j + z k$ where $s,x,y,z$ are real numbers. In terms of notation, we write a quaternion as a 4D vector $q = [s, x, y, z]$ or a combination of a scalar and a vector $q = [s, \vec{v}]$.
+
+\subsection{Rotations}
+Quaternions are very convenient because they can express a rotation around a unit vector $\vec{v} = (x,y,z)$ by an angle $\rho$ as follows:
+\begin{equation}\label{eq:quaternion_rotation}
+q= \left[ \cos\frac{\rho}{2}, \sin\frac{\rho}{2}\vec{v}\right]
+\end{equation}
+The conjugate $q^{-1}$ of a quaternion $q = [s, \vec{v}]$ is given by $q^{-1} = [s, -\vec{v}]$, or in other words, flipping the sign of the axis vector so the rotation is reversed. For a unit quaternion, the inverse is also the conjugate, so $q^{-1} = [s, -\vec{v}]$. A unit quaternion is a quaternion with magnitude 1, where the magnitude of a quaternion is given by $\lVert q \rVert = \sqrt{s^2 + x^2 + y^2 + z^2}$. 
+
+\subsection{Multiplication}
+Quaternion multiplication uses the Hamiltonian product, which is defined as follows (for convenience, the rest of this text will omit the $\otimes$ symbol):
+\begin{equation}\label{eq:quaternion_multiplication}
+    q_1 \otimes q_2 = q_1 q_2 = [s_1 s_2 - \vec{v_1} \cdot \vec{v_2}, s_1 \vec{v_2} + s_2 \vec{v_1} + \vec{v_1} \times \vec{v_2}]
+\end{equation}
+Quaternion multiplication is associative but not commutative due to the cross product, much like matrix multiplication. We can use quaternion multiplication to apply a rotation to a point $\vec{p}$ by treating the point as the vector of a quaternion with zero scalar part and performing the following operation:
+\begin{equation}\label{eq:apply_rotation}
+    \vec{p'} = q \vec{p} q^{-1} = [s, \vec{v}] [0, \vec{p}] [s, -\vec{v}]
+\end{equation}
+To apply a series of rotations to a point, we can apply Equation~\ref{eq:apply_rotation} for each rotation in sequence. For example, if we rotations $q_1, q_2, \ldots q_n$, we can apply them to a point $\vec{p}$ as follows:
+\begin{equation}
+    \vec{p'} = (q_n \ldots q_2 q_1) \vec{p} (q_1^{-1} q_2^{-1} \ldots q_n^{-1})
+\end{equation}
+
+\subsection{Axis transformation}
+One useful identity we will use is the following:
+\begin{equation}
+    x y = (x y x^{-1}) x
+\end{equation}
+which is easily verified due to the associativity of quaternion multiplication. Moreover, if $x$ is a unit quaternion, then we can define $\tilde{y}$ as follows:
+\begin{equation}
+    \tilde{y} = x y x^{-1} = [s_y, x \vec{v_y} x^{-1}]
+\end{equation}
+This is reminiscent of (\ref{eq:apply_rotation}). In other words, $\tilde{y}$ keeps the same scalar part but transforms the vector part by applying the rotation defined by $x$ to it. This is a useful algebraic tool because it allows us to change the order of multiplication:
+\begin{equation}
+    x y = \tilde{y} x
+\end{equation}
+
+
+
+\section{Kawasaki's theorem in 3D}
+Most people are familiar with Kawasaki's theorem in 2D, which states that for a vertex with an even number of creases, the alternating sum of the angles (in absolute position) between the creases must be zero, or equivalently, the sum of every other sector angle msut be $180^\circ$. In 3D, this formulation is generalized to state that sequentially applying the transformations defined by the creases must equal the identity transformation, or in other words, walking around the vertex must bring you back to where you started. One approach would be to express each crease as a 3x3 rotation matrix. However, the more analytically tractable approach is to express each crease as a quaternion, which contains 4 parameters instead of 9.
+
+Each crease is defined by an axis direction $0\leq\theta\leq2\pi$ (location of the crease when unfolded) in the XY plane, and a fold angle $\rho$. We bound $-\pi \leq \rho \leq \pi$ where $\rho = 0$ is unfolded, $\rho = \pi$ is a fully folded valley fold, and $\rho = -\pi$ is a fully folded mountain fold. The quaternion for a crease with axis $\theta_i$ and fold angle $\rho_i$ is derived from Equation~\ref{eq:quaternion_rotation} as follows:
+\begin{equation}
+    q_i = \left[ \cos\frac{\rho_i}{2}, \sin\frac{\rho_i}{2}\cos\theta_i, \sin\frac{\rho_i}{2}\sin\theta_i, 0 \right]
+\end{equation}
+Recall that the identity quaternion is $[1, 0, 0, 0]$. Therefore, for a vertex with $n$ creases defined by $(\theta_1, \rho_1), (\theta_2, \rho_2), \ldots (\theta_n, \rho_n)$, Kawasaki's theorem states that the following must hold:
+\begin{equation}
+    q_n \ldots q_2 q_1 = [1, 0, 0, 0]
+\end{equation}
+The quaternion $q_n \ldots q_2 q_1$ has 4 parameters, giving us 4 constraint equations. However, because rotation quaternions are assumed to have a unit magnitude, one constraint is taken up by the fact that $\lVert q_n \ldots q_2 q_1 \Vert = 1$. Therefore, we are left with 3 constraint equations. For a vertex with $n$ creases, we have $2n$ parameters (the $\theta_i$ and $\rho_i$ for each crease), so we have $2n - 3$ degrees of freedom. For example, for a vertex with 4 creases, we have $2n - 3 = 5$ degrees of freedom. In theory, this means that if any 5 parameters of {$\theta_1, \rho_1, \ldots \theta_4, \rho_4$} are known, the remaining 3 parameters can be solved for using the 3 constraint equations. 
+% However, for unknown $\theta$ terms, the solution is not so simple because $q_n \ldots q_2 q_1$ requires the multiplication to be done in monotonic order of $\theta$. Additionally, it is not realistic to imagine a scenario where $\rho_i$ is known but $\theta_i$ is not. Therefore, although it is not impossible to solve for unknown $\theta$ parameters, we will for now assume that the $\theta$ terms are known and sorted monotonically, and we will have $n-3$ degrees of freedom for the fold angles $\rho_i$.
+
+
+\section{Proving the kinematic properties of degree-4 vertices}
+Suppose you have a vertex with 4 creases. It is well documented that degree-4 vertices are rigid foldable with 1 degree of freedom [citation needed], which agrees with our conclusions above. We will now use the quaternion formulation of Kawasaki's theorem to derive the relationship between the fold angles $\rho_i$ for a degree-4 vertex with known $\theta_i$. For convenience, let $\rho_i = \frac{\rho_i'}{2}$ where $\rho_i'$ is the actual fold angle. We will remove global rotation by fixing $\theta_1 = 0$. Also define sector angles $\delta_{12} = \theta_2-\theta_1$, $\delta_{23} = \theta_3-\theta_2$, and $\delta_{34} = \theta_4-\theta_3$. We can now express the 4 quaternions as follows:
+\begin{align}
+    q_4 q_3 q_2 q_1 &= [1, 0, 0, 0]\\
+    q_2 q_1 &= {(q_4 q_3)}^{-1} = q_3^{-1} q_4^{-1} \\
+    \left[\begin{array}{c}
+        \cos \left(\rho_2 \right)\\
+        \cos \left(\delta_{12} \right)\,\sin \left(\rho_2 \right)\\
+        \sin \left(\delta_{12} \right)\,\sin \left(\rho_2 \right)\\
+        0
+    \end{array}\right]
+    \left[\begin{array}{c}
+        \cos \left(\rho_1 \right)\\
+        \sin \left(\rho_1 \right)\\
+        0\\
+        0
+    \end{array}\right] &= 
+    \left[\begin{array}{c}
+        -\cos \left(\rho_3 \right)\\
+        -\cos \left(\delta_{12} +\delta_{23} \right)\,\sin \left(\rho_3 \right)\\
+        -\sin \left(\delta_{12} +\delta_{23} \right)\,\sin \left(\rho_3 \right)\\
+        0
+    \end{array}\right]
+        \left[\begin{array}{c}
+        -\cos \left(\rho_4 \right)\\
+        -\sin \left(\rho_4 \right)\,\cos \left(\delta_{12} +\delta_{23} +\delta_{34} \right)\\
+        -\sin \left(\delta_{12} +\delta_{23} +\delta_{34} \right)\,\sin \left(\rho_4 \right)\\
+        0
+    \end{array}\right]
+\end{align}
+We can then use Matlab or another symbolic algebra tool to expand the expressions based on the definition of quaternion multiplication (\ref{eq:quaternion_multiplication}) and generate 4 equations, one for each of $s,x,y,z$. However, we only need to consider the equations corresponding to the $s$ and $z$ rows:
+\begin{align}
+    \cos \left(\rho_1 \right)\,\cos \left(\rho_2 \right)-\cos \left(\delta_{12} \right)\,\sin \left(\rho_1 \right)\,\sin \left(\rho_2 \right) &= \cos \left(\rho_3 \right)\,\cos \left(\rho_4 \right)-\cos \left(\delta_{34} \right)\,\sin \left(\rho_3 \right)\,\sin \left(\rho_4 \right) \label{eq:s}\\
+    \sin \left(\delta_{12} \right)\,\sin \left(\rho_1 \right)\,\sin \left(\rho_2 \right) &=\sin \left(\delta_{34} \right)\,\sin \left(\rho_3 \right)\,\sin \left(\rho_4 \right)\label{eq:z}
+\end{align}
+
+Let's now consider the case where the 2D Kawasaki's theorem is satisfied by $\theta_1 - \theta_2 + \theta_3 -\theta_4 =0$, or in other words, 
+\begin{equation}\label{eq:kawasaki_sub}
+    \delta_{34} = \pi - \delta_{12}
+\end{equation}
+Substituting (\ref{eq:kawasaki_sub}) into (\ref{eq:z}) gives:
+\begin{equation}\label{eq:sin_equal}
+    \sin \rho_1 \sin \rho_2 = -\sin \rho_3 \sin \rho_4
+\end{equation}
+Then, substituting (\ref{eq:sin_equal}) into (\ref{eq:s}) gives\footnote{Note that obtaining (\ref{eq:cos_equal}) required dividng by $\cos\delta_{12}$, which could be $0$ when $\delta_{12} = \frac{\pi}{2}$. (Dividing by $\sin\delta_{12}$ can be excused by assuming that $0<\delta_{12}<\pi$). This is a singularity case where the fold angles decouple. You can experience this by folding two straight perpendicular creases, and observe that unfolding one has no effect on the other.}:
+\begin{equation}\label{eq:cos_equal}
+    \cos \rho_1 \cos \rho_2 = \cos \rho_3 \cos \rho_4
+\end{equation}
+
+
+Now recall the trig identity $\cos(A\pm B) = \cos A \cos B \mp \sin A \sin B$. Using these identities, we can rewrite (\ref{eq:sin_equal}) and (\ref{eq:cos_equal}) into:
+\begin{align}
+    \cos(\rho_1-\rho_2)&= \cos(\rho_3+\rho_4)\\
+    \cos(\rho_1+\rho_2) &= \cos(\rho_3-\rho_4)
+\end{align}
+Which is equivalent to:
+\begin{align}
+    \rho_1-\rho_2 &= \pm(\rho_3 + \rho_4)\label{eq:A}\\
+    \rho_1+\rho_2 &= \pm(\rho_3 - \rho_4)\label{eq:B}
+\end{align}
+At this point, we recall that we initially substituted $\rho_i$ to be only half of the true fold angle, but are reassured that these equations would not be affected by scalar multiplication of $\rho_i$. This also implies that the relationship between the fold angles does not change throughout the 1 degree of freedom trajectory as the vertex folds or unfolds. 
+
+There are 2 solutions to (\ref{eq:A}) and 2 solutions to (\ref{eq:B}), giving us 4 total solutions: 
+\begin{align}
+(\rho_1=\rho_3) &\land (\rho_2=-\rho_4)\\
+(\rho_1=\rho_4) &\land (\rho_2=-\rho_3)\\
+(\rho_1=-\rho_4) &\land (\rho_2=\rho_3)\\
+(\rho_1=-\rho_3 )&\land (\rho_2=\rho4)\\
+\end{align}
+In short, the fold angles are coupled into a pair of equal angles and a pair of opposite angles. This agrees with Maekawa's theorem because it implies that the sign of one fold angle will have to be opposite the sign of the other three.
+
+
+\section{Solving for an unknown crease}
+In the context of a crease pattern software, it is often the case that a vertex is not foldable, but can be made foldable by the addition of a crease. We now would like to solve for the axis direction and fold angle of this new crease, and to find all possible solutions. This problem is actually overdetermined because we have 3 constraint equations but the new crease is defined by 2 parameters.
+
+Unfortunately, there is no closed-form solution for this missing crease. The reason stems from the assumption that all quaternions are multiplied in order of increasing $\theta$. This means that the unknown crease can be in any position in the multiplication sequence, so we must check all cases. 
+
+Suppose we have a vertex with $n$ creases. Define $Q_{tot} = q_n \ldots q_2 q_1 \neq \mathbf{1}$ as the total transformation, which is currently not equal to the identity quaternion. For all $k \in [1, n-1]$, we will attempt to insert a new crease $q_{new}$ between $q_k$ and $q_{k+1}$, and check if there exists a solution for $q_{new}$ such that the new total transformation is the identity quaternion. For a given $k$, we can solve for $q_{new}$ as follows:
+\begin{align}
+    q_n q_{n-1}\ldots q_{k+1} q_{new} q_k \ldots q_2 q_1 &= \mathbf{1}\\
+    Q_{L} q_{new} Q_{R} &= \mathbf{1}\\
+    q_{new} &= Q_L^{-1} Q_R^{-1}
+\end{align}
+Recall that $Q_L Q_R = Q_{tot} \longrightarrow Q_R = Q_L^{-1} Q_{tot} \longrightarrow Q_R^{-1} = Q_{tot} Q_L$. Therefore,
+\begin{equation}
+    q_{new} = Q_L^{-1} Q_{tot} Q_L
+\end{equation}
+
+Before concluding that $q_{new}$ is a valid solution, we need to verify that its axis lies in the XY plane, which is equivalent to verifying that the $z$ component of $q_{new}$ is $0$. If the $z$ component is not $0$, then at least 2 new creases must be added between $q_k$ and $q_{k+1}$ to achieve foldability. 
+
+If the $z$ component of $q_{new}$ is $0$, then we can extract the axis direction $\theta_{new}$ from the $x,y$ components. Then if our original assumption $\theta_k < \theta_{new} < \theta_{k+1}$ is satisfied, then $q_{new}$ is a valid solution. If not, then we can discard this solution and move on to the next $k$.
+
+Note that $Q_{tot}$ is precomputed once for all $k$, and all $Q_L$ can be computed iteratively for all $k$ in $O(n)$ time. Therefore, we can compute all valid $q_{new}$ for in $O(n)$ time.
+
+\section{Solving for 3 unknown fold angles}
+Next, we would like to address the case where we have a degree-$n$ vertex with 3 unknown fold angles. Let $q_a, q_b, q_c$ be the quaternions with known axis directions but unknown fold angles, assuming that $\theta_a < \theta_b < \theta_c$. Let $Q_1, Q_2, Q_3, Q_4$ be the products of the known crease quaternions between the unknown ones, which may be $\mathbf{1}$ if any unknown creases are adjacent. Then we wish to solve for $\rho_a, \rho_b, \rho_c$ such that Kawasaki's theorem is satisfied:
+
+\begin{align}
+    Q_4 q_c Q_3 q_b Q_2 q_a Q_1 &= \mathbf{1}\\
+    q_c Q_3 q_b Q_2 q_a &= Q_4^{-1} Q_1^{-1} \\
+\end{align}
+
+Then, by applying the axis transformation identity, we can effectively swap $Q_2 q_a = \tilde{q_a} Q_2$ to move $Q_2$ to the right. A similar trick can be applied to move $Q_3$ to the right as well:
+\begin{align}
+    q_c Q_3 q_b \tilde{q_a} &= Q_4^{-1} Q_1^{-1} Q_2^{-1} \text{, where } \tilde{q_a} = Q_2 q_a Q_2^{-1} \\
+    q_c \tilde{q_b} \tilde{\tilde{q_a}} &= Q_4^{-1} Q_1^{-1} Q_2^{-1} Q_3^{-1} \text{, where } \tilde{q_b} = Q_3 q_b Q_3^{-1} \text{ and } \tilde{\tilde{q_a}} = Q_3 \tilde{q_a} Q_3^{-1}
+\end{align}
+
+We now show that the scalar components of $q_a, q_b$ did not change under the axis transformations, only the vector components. Let $\vec{v_a}, \vec{v_b}, \vec{v_c}$ be the original fold axes of $q_a, q_b, q_c$ respectively, and let $\vec{u_a}, \vec{u_b}, \vec{u_c}$ be the new fold axes of $\tilde{\tilde{q_a}}, \tilde{q_b}, q_c$ respectively. Recall our definition of a crease quaternion: $q(\rho,\theta) = [\cos\frac{\rho}{2}, \sin\frac{\rho}{2}\vec{v}]$ where $\vec{v} = [\cos\theta, \sin\theta, 0]$. Also recall that axis transformations do not change the effect of the scalar component, so we can express $\tilde{q_b}$ as:
+\begin{align}
+    \tilde{q_b} = Q_3 q_b Q_3^{-1} &= [\cos\frac{\rho_b}{2}, Q_3(\sin\frac{\rho_b}{2} \vec{v_b})Q_3^{-1}]\\
+    &= [\cos\frac{\rho_b}{2}, \sin\frac{\rho_b}{2} (Q_3 \vec{v_b} Q_3^{-1})]\\
+    &= [\cos\frac{\rho_b}{2}, \sin\frac{\rho_b}{2} \vec{u_b}]
+\end{align}
+In other words, $\tilde{q_b}$ is a rotation with the same unknown fold angle $\rho_b$, but with a known axis direction $\vec{u_b} = Q_3 \vec{v_b} Q_3^{-1}$. Similarly, $\tilde{\tilde{q_a}}$ is a rotation with the same unknown fold angle $\rho_a$, but with a known axis direction $\vec{u_a} = Q_3 Q_2 \vec{v_a} Q_2^{-1} Q_3^{-1}$. We now seek to find the unknown fold angles $\rho_a, \rho_b, \rho_c$ by solving the rotation matrix equivalent of the following equation:
+\begin{align}
+    q_c \tilde{q_b} \tilde{\tilde{q_a}} &= Q_4^{-1} Q_1^{-1} Q_2^{-1} Q_3^{-1} \\
+    R(\rho_c,\vec{u_c}) R(\rho_b,\vec{u_b}) R(\rho_a,\vec{u_a}) &= R_{target}
+\end{align}
+where $R(\rho,\vec{u})$ is the rotation matrix using Rodrigues' formula for a rotation of $\rho$ around axis $\vec{u}$, and $R_{target}$ is the rotation matrix corresponding to the known quaternion $Q_4^{-1} Q_1^{-1} Q_2^{-1} Q_3^{-1}$. We can then isolate $R_b$ by taking advantage of the fact that $\vec{u_c}^T R_C = \vec{u_c}^T$ and $R_a \vec{u_a} = \vec{u_a}$ (because rotation of an axis around itself is just itself):
+\begin{align}
+    \vec{u_c}^T R(\rho_b,\vec{u_b}) \vec{u_a} = &k\\
+    \text{where known scalar } &k := \vec{u_c}^T R_{target} \vec{u_a}
+\end{align}
+
+Then we can apply Rodrigues' formula to the left hand side and rearrange to get:
+\begin{align}
+    \vec{u_c}^T (I_3 \cos\rho_b + (1-\cos\rho_b)(\vec{u_b}\vec{u_b}^T) + \sin\rho_b {[\vec{u_b}]}_\times) \vec{u_a} &= k \\
+    \vec{u_c}^T (\cos\rho_b(I_3-\vec{u_b}\vec{u_b}^T) + \vec{u_b}\vec{u_b}^T + \sin\rho_b {[\vec{u_b}]}_\times) \vec{u_a} &= k \\
+    \cos\rho_b \left[ \vec{u_c}^T (I_3-\vec{u_b}\vec{u_b}^T) \vec{u_a} \right] + \sin\rho_b \left[\vec{u_c}^T (\vec{u_b}\times \vec{u_a})\right] + \left[\vec{u_c}^T (\vec{u_b}\vec{u_b}^T) \vec{u_a} - k\right]&= 0
+\end{align}
+Note that this last equation is of the form $A \cos\rho_b + B \sin\rho_b + C = 0$ where $A,B,C$ are known scalars. We can then apply the following trig subsitution and solve via the quadratic formula:
+\begin{align} 
+t := \tan\frac{\rho_b}{2}, \cos\rho_b = \frac{1-t^2}{1+t^2}, \sin\rho_b = \frac{2t}{1+t^2} \\
+A \frac{1-t^2}{1+t^2} + B \frac{2t}{1+t^2} + C &= 0 \\
+(C-A) t^2 + 2Bt + (A+C) &= 0 \\
+t &= \frac{-B \pm \sqrt{B^2 - 4(C-A)(A+C)}}{2(C-A)} \\
+% t &= \frac{B \pm \sqrt{A^2 + B^2 - C^2}}{A-C}\\
+\rho_b &= 2 \arctan \left(\frac{B \pm \sqrt{A^2 + B^2 - C^2}}{A-C}\right)
+\end{align}
+It makes intuitive sense that non-degenerate cases will have 2 solutions for $\rho_b$, and thus 2 solution sets of $\rho_a,\rho_b,\rho_c$. Consider the vertex with angular defect at the corner of a cube. If the crease angles are unknown, then there are 2 valid foldings: one where all 3 fold angles are mountains, and one ``popped inside out'' where all 3 fold angles are valleys. A similar effect is occuring here.
+
+\section{Conclusion}
+In conclusion, we use quaternions and 3D Kawasaki's theorem to show the following properties:
+\begin{itemize}
+    \item When all $\rho\in \{\pi,-\pi\}$, the 3d formulation reduces to the 2D Kawasaki's theorem on $\theta$ [not written up yet but can be shown]
+    \item When all $\theta$ are known, there are $n-3$ degrees of freedom for the $n$ fold angles. Importantly, this means that degree 4 vertices have one rigid degree of freedom to fold.
+    \item For degree 4 vertices that satisfy the 2D Kawasaki's theorem, the fold angles are coupled into a pair of equal angles and a pair of opposite angles. This agrees with Maekawa's theorem because one angle must be the opposite sign of the other three.
+\end{itemize}
+A few things to look into next:
+\begin{itemize}
+    \item Check the aforementioned singularity for when the 4 creases form a perpendicular intersection. The coupling breaks down because we divided by $\cos \delta_{12}$ 
+    \item Derive the relationship between the pairs of coupled fold angles. This is essentially the mechanical advantage or Poisson's ratio
+    \item What about the relationship between fold angles for cases where the $\theta$ do not satisfy the 2D Kawasaki's theorem
+    \item Generalize the degree-4 vertex results to degree-$n$ vertices
+\end{itemize}
+
+\end{document}
+
+
+
+
+% This boils down to our full set of 4 equations:
+% \begin{equation}
+%     \left[\begin{array}{c}
+%         \cos \left(\rho_1 \right)\,\cos \left(\rho_2 \right)-\cos \left(\delta_{12} \right)\,\sin \left(\rho_1 \right)\,\sin \left(\rho_2 \right)\\
+%         \cos \left(\rho_2 \right)\,\sin \left(\rho_1 \right)+\cos \left(\delta_{12} \right)\,\cos \left(\rho_1 \right)\,\sin \left(\rho_2 \right)\\
+%         \cos \left(\rho_1 \right)\,\sin \left(\delta_{12} \right)\,\sin \left(\rho_2 \right)\\
+%         \sin \left(\delta_{12} \right)\,\sin \left(\rho_1 \right)\,\sin \left(\rho_2 \right)
+%     \end{array}\right] =
+%     \left[\begin{array}{c}
+%         \cos \left(\rho_3 \right)\,\cos \left(\rho_4 \right)-\cos \left(\delta_{34} \right)\,\sin \left(\rho_3 \right)\,\sin \left(\rho_4 \right)\\
+%         -\cos \left(\rho_3 \right)\,\sin \left(\rho_4 \right)\,\cos \left(\delta_{12} +\delta_{23} +\delta_{34} \right)-\cos \left(\delta_{12} +\delta_{23} \right)\,\cos \left(\rho_4 \right)\,\sin \left(\rho_3 \right)\\
+%         \sin \left(\delta_{12} +\delta_{23} +\delta_{34} \right)\,\cos \left(\rho_3 \right)\,\sin \left(\rho_4 \right)-\sin \left(\delta_{12} +\delta_{23} \right)\,\cos \left(\rho_4 \right)\,\sin \left(\rho_3 \right)\\
+%         \sin \left(\delta_{34} \right)\,\sin \left(\rho_3 \right)\,\sin \left(\rho_4 \right)
+%     \end{array}\right]
+% \end{equation}
